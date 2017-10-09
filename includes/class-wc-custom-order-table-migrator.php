@@ -11,16 +11,32 @@ class WC_Custom_Order_Table_Migrator {
 
         $order_table = wc_custom_order_table()->get_table_name();
 
-        $order_count = $wpdb->get_var( $wpdb->prepare("
+        $order_types = implode(',', array_map(
+            array($this, 'escape_for_in_array_query'),
+            wc_get_order_types('reports')
+        ));
+
+        $order_count = $wpdb->get_var("
             SELECT COUNT(1)
             FROM {$wpdb->posts} p
             LEFT JOIN {$order_table} o ON p.ID = o.order_id
-            WHERE p.post_type IN ('%s')
+            WHERE p.post_type IN ({$order_types})
             AND o.order_id IS NULL
             ORDER BY p.post_date DESC
-        ", implode(',', wc_get_order_types('reports'))));
+        ");
 
         return $order_count;
+    }
+
+    /**
+     * Manually escape a value so it can be used as a comma separated set of
+     * values for usage inside a IN query structure
+     * @param string $value
+     * @return string
+     */
+    public function escape_for_in_array_query($value)
+    {
+        return "'" . esc_sql($value) . "'";
     }
 
     public function migrate($orders_batch, $orders_page)
