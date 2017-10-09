@@ -78,4 +78,41 @@ class WC_Custom_Order_Table_Migrator {
 
         return $batches_processed;
     }
+
+    public function backfill($orders_batch, $orders_page)
+    {
+        global $wpdb;
+        
+        $order_count = $this->count_custom_table();
+        $total_pages = ceil($order_count / $orders_batch);
+        $order_table = wc_custom_order_table()->get_table_name();
+
+        $orders_sql = "SELECT order_id FROM {$order_table} o";
+        $batches_processed = 0;
+
+        for ($page = $orders_page; $page <= $total_pages; $page++) {
+            $offset = ($page * $orders_batch) - $orders_batch;
+            $sql = $wpdb->prepare($orders_sql . ' LIMIT %d OFFSET %d', $orders_batch, max($offset, 0));
+            $orders = $wpdb->get_col($sql);
+
+            foreach ($orders as $order) {
+                // Accessing the order via wc_get_order will automatically migrate the order to the custom table.
+                $order = wc_get_order($order);
+                $order->get_data_store()->backfill_postmeta( $order );
+
+                do_action('wc_custom_order_table_backfill_tick');
+            }
+
+            $batches_processed++;
+        }
+
+        return $batches_processed;
+    }
+
+    public function count_custom_table()
+    {
+        global $wpdb;
+        $order_table = wc_custom_order_table()->get_table_name();
+        return $wpdb->get_var("SELECT COUNT(1) FROM {$order_table} o" );
+    }
 }
