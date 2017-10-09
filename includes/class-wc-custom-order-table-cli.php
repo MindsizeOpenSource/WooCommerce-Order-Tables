@@ -59,7 +59,7 @@ class WC_Custom_Order_Table_CLI extends WP_CLI_Command
         $orders_batch = isset($assoc_args['batch']) ? absint($assoc_args['batch']) : 1000;
         $orders_page = isset($assoc_args['page']) ? absint($assoc_args['page']) : 1;
 
-        $order_count = $this->count();
+        $order_count = $this->migrator->count();
 
         $this->progress = \WP_CLI\Utils\make_progress_bar('Order Data Migration', $order_count);
 
