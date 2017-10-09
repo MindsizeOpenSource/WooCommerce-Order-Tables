@@ -5,20 +5,37 @@
   "license": "GPL-2.0",
   "require": {
     "composer/installers": "^1.4",
-    "xrstf/composer-php52": "^1.0"
+    "xrstf/composer-php52": "^1.0",
+    "a5hleyrich/wp-background-processing": "^1.0"
   },
   "autoload": {
     "classmap": ["includes"]
   },
   "scripts": {
     "post-install-cmd": [
-      "xrstf\\Composer52\\Generator::onPostInstallCmd"
+      "xrstf\\Composer52\\Generator::onPostInstallCmd",
+      "\"vendor/bin/mozart\" compose"
     ],
     "post-update-cmd": [
-      "xrstf\\Composer52\\Generator::onPostInstallCmd"
+      "xrstf\\Composer52\\Generator::onPostInstallCmd",
+      "\"vendor/bin/mozart\" compose"
     ],
     "post-autoload-dump": [
       "xrstf\\Composer52\\Generator::onPostInstallCmd"
     ]
+  },
+  "extra": {
+    "mozart": {
+      "dep_namespace": "LiquidWeb\\CustomOrderTables\\Dependencies\\",
+      "dep_directory": "/src/Dependencies/",
+      "classmap_directory": "/includes/dependencies/",
+      "classmap_prefix": "WCCOT_",
+      "packages": [
+        "a5hleyrich/wp-background-processing"
+      ]
+    }
+  },
+  "require-dev": {
+    "coenjacobs/mozart": "^0.2.0"
   }
 }
