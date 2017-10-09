@@ -10,11 +10,7 @@ class WC_Custom_Order_Table_Migrator {
         global $wpdb;
 
         $order_table = wc_custom_order_table()->get_table_name();
-
-        $order_types = implode(',', array_map(
-            array($this, 'escape_for_in_array_query'),
-            wc_get_order_types('reports')
-        ));
+        $order_types = $this->get_escaped_order_types();
 
         $order_count = $wpdb->get_var("
             SELECT COUNT(1)
@@ -26,6 +22,14 @@ class WC_Custom_Order_Table_Migrator {
         ");
 
         return $order_count;
+    }
+
+    public function get_escaped_order_types()
+    {
+        return implode(',', array_map(
+            array($this, 'escape_for_in_array_query'),
+            wc_get_order_types('reports')
+        ));
     }
 
     /**
@@ -48,11 +52,13 @@ class WC_Custom_Order_Table_Migrator {
         $order_count = $this->count();
         $total_pages = ceil($order_count / $orders_batch);
 
-        $orders_sql = $wpdb->prepare("
+        $order_types = $this->get_escaped_order_types();
+
+        $orders_sql = "
           SELECT ID FROM {$wpdb->posts}
-          WHERE post_type IN ('%s')
+          WHERE post_type IN ({$order_types})
           ORDER BY post_date DESC
-        ", implode(',', wc_get_order_types('reports')));
+        ";
         $batches_processed = 0;
 
         for ($page = $orders_page; $page <= $total_pages; $page++) {
